@@ -11,12 +11,12 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
     @all_ratings = Movie.ratings
+    @movies = Movie.all
     @ratings_hash = Hash[*@all_ratings.map {|key| [key, 1]}.flatten]
 
     if (params[:session] == "clear")
-      session[:sort_by] = nil
+      session[:sort] = nil
       session[:ratings] = nil
     end
 
@@ -26,26 +26,25 @@ class MoviesController < ApplicationController
       session[:ratings] = @ratings_hash
     end
 
-    if (params[:sort_by] != nil)
-      case params[:sort_by]
+    if (params[:sort] != nil)
+      case params[:sort]
       when "title"
-        @movies = Movie.order(params[:sort_by])
+        @movies = @movies.order(:title)
         @class_title = "hilite"
-        session[:sort_by] = "title"
+        session[:sort] = "title"
       when "release_date"
-        @movies = Movie.order(params[:sort_by])
+        @movies = @movies.order(:release_date)
         @class_release_date = "hilite"
-        session[:sort_by] = "release_date"
+        session[:sort] = "release_date"
       end
+    end
 
-
-    if (params[:sort_by] == nil || params[:ratings] == nil)
+    if (params[:sort] == nil || params[:ratings] == nil)
       redirect_hash = (session[:ratings] != nil) ? Hash[*session[:ratings].keys.map {|key| ["ratings[#{key}]", 1]}.flatten] : { :ratings => @ratings_hash }
-      redirect_hash[:sort_by] = (session[:sort_by] != nil) ? session[:sort_by] : "none"
+      redirect_hash[:sort] = (session[:sort] != nil) ? session[:sort] : "none"
       redirect_to movies_path(redirect_hash) and return
     end
   end
-end
 
   def new
     # default: render 'new' template
@@ -73,10 +72,6 @@ end
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
-  end
-
-  def movie
-    @all_ratings = "G"
   end
 
 end
